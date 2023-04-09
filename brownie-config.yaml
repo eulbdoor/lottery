@@ -1,3 +1,8 @@
+networks:
+  development:
+      cmd_settings:
+          unlock:
+              - 0x4Ba7bFE87A9bC2Df719b2A5502718F794C6B9d10
 compiler:
     solc:
         remappings:
