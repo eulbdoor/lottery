@@ -38,17 +38,17 @@ contract Lottery is ERC1155, ERC1155Burnable, Ownable {
     uint256 public current_ticket_id;
 
     constructor(uint256 _ticket_cost, uint256 _max_tickets) ERC1155("") {
-        _set_lottary_info(_ticket_cost, _max_tickets);
+        _set_lottery_info(_ticket_cost, _max_tickets);
     }
 
     function create_lottery(uint256 _ticket_cost, uint256 _max_tickets) onlyOwner public {
         require(lottery_state == LOTTERY_STATE.FINISHED);
 
         lottery_state = LOTTERY_STATE.CREATED;
-        _set_lottary_info(_ticket_cost, _max_tickets);
+        _set_lottery_info(_ticket_cost, _max_tickets);
     }
 
-    function _set_lottary_info(uint256 _ticket_cost, uint256 _max_tickets) private {
+    function _set_lottery_info(uint256 _ticket_cost, uint256 _max_tickets) private {
         lottery_info = LotteryInfo({
             ticket_cost: _ticket_cost * 10**18,
             max_tickets: _max_tickets,
