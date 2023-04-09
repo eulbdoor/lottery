@@ -42,12 +42,11 @@ contract Lottery is ERC1155, ERC1155Burnable, Ownable {
     }
 
     function create_lottery(uint256 _ticket_cost, uint256 _max_tickets) onlyOwner public {
-        require(lottery_state == LOTTERY_STATE.FINISHED);
+        require(lottery_state == LOTTERY_STATE.FINISHED, "Wrong lottery state");
 
         lottery_state = LOTTERY_STATE.CREATED;
         _set_lottery_info(_ticket_cost, _max_tickets);
     }
-
     function _set_lottery_info(uint256 _ticket_cost, uint256 _max_tickets) private {
         lottery_info = LotteryInfo({
             ticket_cost: _ticket_cost * 10**18,
@@ -60,33 +59,33 @@ contract Lottery is ERC1155, ERC1155Burnable, Ownable {
     }
 
     function change_ticket_cost(uint256 _ticket_cost) onlyOwner public {
-        require(lottery_state == LOTTERY_STATE.CREATED);
+        require(lottery_state == LOTTERY_STATE.CREATED, "Wrong lottery state");
         lottery_info.ticket_cost = _ticket_cost * 10**18;
     }
 
     function change_max_tickets(uint256 _max_tickets) onlyOwner public {
-        require(lottery_state == LOTTERY_STATE.CREATED);
+        require(lottery_state == LOTTERY_STATE.CREATED, "Wrong lottery state");
         lottery_info.max_tickets = _max_tickets;
     }
 
     function start_lottery() onlyOwner public {
-        require(lottery_state == LOTTERY_STATE.CREATED);
+        require(lottery_state == LOTTERY_STATE.CREATED, "Wrong lottery state");
         lottery_state = LOTTERY_STATE.OPEN;
     }
 
     // Usar _beforeTokenTransfer? - Hooks!
     // TODO: Emit an event
     function buy_ticket() public payable {
-        require(lottery_state == LOTTERY_STATE.OPEN);
-        require(current_ticket_id < lottery_info.ending_ticket_id);
-        require(msg.value == lottery_info.ticket_cost); // TODO: Verificar se o o msg.value vem em WEI 
+        require(lottery_state == LOTTERY_STATE.OPEN, "Wrong lottery state");
+        require(current_ticket_id < lottery_info.ending_ticket_id, "Lottery is sold out");
+        require(msg.value == lottery_info.ticket_cost, "Not enough funds"); // TODO: Verificar se o o msg.value vem em WEI 
 
         current_ticket_id += 1;
         _mint(_msgSender(), current_ticket_id, 1, "");
     }
 
     function end_lottery() onlyOwner public {
-        require(lottery_state == LOTTERY_STATE.OPEN);
+        require(lottery_state == LOTTERY_STATE.OPEN, "Wrong lottery state");
 
         lottery_state = LOTTERY_STATE.CLOSED;
         _set_tickets_bought();
@@ -95,13 +94,13 @@ contract Lottery is ERC1155, ERC1155Burnable, Ownable {
     }
     
     function _set_tickets_bought() private {
-        require(lottery_state == LOTTERY_STATE.CLOSED);
+        require(lottery_state == LOTTERY_STATE.CLOSED, "Wrong lottery state");
 
         lottery_info.tickets_bought = current_ticket_id - lottery_info.starting_ticket_id;
     }
 
     function _set_winning_ticket_id() private {
-        require(lottery_state == LOTTERY_STATE.CLOSED);
+        require(lottery_state == LOTTERY_STATE.CLOSED, "Wrong lottery state");
 
         lottery_info.winning_ticket_id = _get_random_number() % lottery_info.tickets_bought + lottery_info.starting_ticket_id;
         lottery_state = LOTTERY_STATE.CLAIMING;
@@ -116,9 +115,9 @@ contract Lottery is ERC1155, ERC1155Burnable, Ownable {
     }
 
     function claim(uint256 _ticket_id) public payable {
-        require(lottery_state == LOTTERY_STATE.CLAIMING);
-        require(balanceOf(_msgSender(), _ticket_id) == 1);
-        require(_ticket_id == lottery_info.winning_ticket_id);
+        require(lottery_state == LOTTERY_STATE.CLAIMING, "Wrong lottery state");
+        require(balanceOf(_msgSender(), _ticket_id) == 1, "Ticket not found");
+        require(_ticket_id == lottery_info.winning_ticket_id, "Ticket is not a winning ticket");
 
         _burn(_msgSender(), _ticket_id, 1);
         payable(_msgSender()).transfer(address(this).balance);

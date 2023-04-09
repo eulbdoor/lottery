@@ -14,7 +14,7 @@ def test_start_lottery(token, deployer):
 
 def test_start_lottery_twice(token, deployer):
     token.start_lottery({'from': deployer})
-    with brownie.reverts(""):
+    with brownie.reverts("Wrong lottery state"):
         token.start_lottery({'from': deployer})
 
 def test_start_lottery_not_authorized(token):
